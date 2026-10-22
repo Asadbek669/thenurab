@@ -3,11 +3,11 @@ import { appHref } from '../lib/routes';
 
 export default function Header({ cartCount, profile }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f8f7f4]/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 w-full border-b border-stone-200/80 bg-[#f8f7f4]/95 backdrop-blur-xl">
       <div className="bg-[#24231f] px-4 py-2 text-center text-[10px] font-medium tracking-wide text-white sm:text-xs">
         Barcha buyurtmalarga yetkazib berish xizmati mavjud
       </div>
-      <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[68px] w-full max-w-7xl items-center justify-between gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6 lg:px-8">
         <a href={appHref()} className="group flex items-center gap-2.5" aria-label="Thenurab Store bosh sahifa">
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#24231f] text-sm font-black tracking-tight text-white transition group-hover:bg-[#8b6b48] sm:h-11 sm:w-11">T</span>
           <span>

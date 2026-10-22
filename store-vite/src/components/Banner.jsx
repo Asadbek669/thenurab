@@ -25,12 +25,12 @@ export default function Banner({ banners, loading = false }) {
 
   if (loading) {
     return (
-      <section aria-label="Banner yuklanmoqda" aria-busy="true" className="skeleton-shimmer aspect-[16/9] min-h-52 overflow-hidden rounded-[28px] sm:aspect-[16/7] sm:min-h-[300px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]" />
+      <section aria-label="Banner yuklanmoqda" aria-busy="true" className="skeleton-shimmer aspect-[16/9] min-h-44 overflow-hidden rounded-[24px] sm:aspect-[16/7] sm:min-h-[280px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]" />
     );
   }
 
   return (
-    <section aria-busy={Boolean(imageName && loadedImageName !== imageName)} className="relative isolate aspect-[16/9] min-h-52 overflow-hidden rounded-[28px] bg-[#292820] shadow-[0_24px_70px_rgba(39,35,28,0.16)] sm:aspect-[16/7] sm:min-h-[300px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]">
+    <section aria-busy={Boolean(imageName && loadedImageName !== imageName)} className="relative isolate aspect-[16/9] min-h-44 w-full overflow-hidden rounded-[24px] bg-[#292820] shadow-[0_24px_70px_rgba(39,35,28,0.16)] sm:aspect-[16/7] sm:min-h-[280px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]">
       <a
         href={banner.url ? (banner.url.startsWith('/') ? appHref(banner.url) : banner.url) : '#products'}
         aria-label={banner.title ? `Banner: ${banner.title}` : 'Banner orqali mahsulotlarni ko‘rish'}
