@@ -1,0 +1,17 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+backend/pb_data/
+backend/pocketbase.exe
+*.exe
+*.zip
+*.db
+*.db-shm
+*.db-wal
