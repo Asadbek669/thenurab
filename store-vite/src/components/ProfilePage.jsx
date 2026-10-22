@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Send, ShieldCheck, UserRound } from 'lucide-react';
 import pb from '../lib/pocketbase';
+import { appHref } from '../lib/routes';
 
 export default function ProfilePage() {
   const webApp = window.Telegram?.WebApp;
@@ -66,7 +67,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-[#f6f4f0] px-4 py-8 sm:py-14">
       <div className="mx-auto max-w-2xl">
-        <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]">
+        <a href={appHref()} className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]">
           <ArrowLeft className="h-4 w-4" /> Do‘konga qaytish
         </a>
         <section className="mt-7 overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_20px_60px_rgba(39,35,28,0.08)] sm:mt-9">

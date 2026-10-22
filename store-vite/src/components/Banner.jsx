@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import pb from '../lib/pocketbase';
+import { appHref } from '../lib/routes';
 
 export default function Banner({ banners }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -24,7 +25,7 @@ export default function Banner({ banners }) {
   return (
     <section className="relative isolate aspect-[16/9] min-h-52 overflow-hidden rounded-[28px] bg-[#292820] shadow-[0_24px_70px_rgba(39,35,28,0.16)] sm:aspect-[16/7] sm:min-h-[300px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]">
       <a
-        href={banner.url || '#products'}
+        href={banner.url ? (banner.url.startsWith('/') ? appHref(banner.url) : banner.url) : '#products'}
         aria-label={banner.title ? `Banner: ${banner.title}` : 'Banner orqali mahsulotlarni ko‘rish'}
         className="absolute inset-0 z-0 block"
       >

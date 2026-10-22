@@ -6,6 +6,7 @@ import {
 import pb from '../lib/pocketbase';
 import prepareImage from '../lib/prepareImage';
 import { colorDetails, normalizeProductOptions, productColors } from '../lib/productColors';
+import { appHref } from '../lib/routes';
 
 const sections = [
   { id: 'overview', label: 'Umumiy', icon: LayoutDashboard },
@@ -146,7 +147,7 @@ export default function AdminPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f4f2ed] px-4 py-10">
         <form onSubmit={login} className="w-full max-w-md rounded-[28px] border border-stone-200 bg-white p-7 shadow-[0_24px_70px_rgba(39,35,28,0.1)] sm:p-9">
-          <a href="/" className="inline-flex items-center gap-3">
+          <a href={appHref()} className="inline-flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#24231f] font-black text-white">T</span>
             <span className="text-sm font-black tracking-[0.14em]">THENURAB <span className="text-[#9a8062]">ADMIN</span></span>
           </a>
@@ -178,7 +179,7 @@ export default function AdminPage() {
           <button disabled={loading} className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-[#24231f] text-sm font-bold text-white transition hover:bg-[#8b6b48] disabled:opacity-60">
             {loading ? 'Tekshirilmoqda...' : 'Xavfsiz kirish'}
           </button>
-          <a href="/" className="mt-5 block text-center text-sm font-medium text-stone-500 hover:text-stone-900">Do‘konga qaytish</a>
+          <a href={appHref()} className="mt-5 block text-center text-sm font-medium text-stone-500 hover:text-stone-900">Do‘konga qaytish</a>
         </form>
       </main>
     );
@@ -188,7 +189,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#f5f4f1] text-stone-900 lg:flex">
       <aside className="bg-[#24231f] px-4 py-4 text-white lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:px-5 lg:py-7">
         <div className="flex items-center justify-between lg:block">
-          <a href="/" className="flex items-center gap-3">
+          <a href={appHref()} className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8b6b48] font-black">T</span>
             <span><span className="block text-sm font-black tracking-[0.13em]">THENURAB</span><span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">Admin panel</span></span>
           </a>

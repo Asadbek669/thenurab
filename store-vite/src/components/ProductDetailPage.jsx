@@ -4,6 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import pb from '../lib/pocketbase';
 import { colorDetails, normalizeProductOptions } from '../lib/productColors';
+import { appHref } from '../lib/routes';
 
 const formatPrice = (price) => `${Number(price || 0).toLocaleString('uz-UZ')} so'm`;
 const productPrice = (product) => {
@@ -52,7 +53,7 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
     <div className="flex min-h-screen flex-col bg-[#f8f7f4] text-[#24231f]">
       <Header cartCount={cartCount} profile={profile} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]"><ArrowLeft className="h-4 w-4" /> Mahsulotlarga qaytish</a>
+        <a href={appHref()} className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]"><ArrowLeft className="h-4 w-4" /> Mahsulotlarga qaytish</a>
         {loading ? <div className="mt-8 grid animate-pulse gap-8 lg:grid-cols-2"><div className="aspect-square rounded-3xl bg-stone-200" /><div className="h-96 rounded-3xl bg-stone-200" /></div>
           : error ? <div role="alert" className="mt-8 rounded-3xl border border-red-100 bg-white p-10 text-center text-sm text-red-700">{error}</div>
             : product && (
@@ -116,7 +117,7 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
                   >
                     <Plus className="h-4 w-4" /> {product.in_stock === false ? 'Mahsulot tugagan' : colors.length > 0 && !selectedColor ? 'Rangni tanlang' : sizes.length > 0 && !selectedSize ? 'O‘lchamni tanlang' : added ? 'Yana savatchaga qo‘shish' : 'Savatchaga qo‘shish'}
                   </button>
-                  {added && <a href="/cart" className="mt-3 block text-center text-sm font-semibold text-[#8b6b48] hover:underline">Savatchaga o‘tish ({cartCount})</a>}
+                  {added && <a href={appHref('/cart')} className="mt-3 block text-center text-sm font-semibold text-[#8b6b48] hover:underline">Savatchaga o‘tish ({cartCount})</a>}
                 </div>
               </section>
             )}

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      const path = location.pathname.replace(/^\/thenurab/, '') || '/';
+      sessionStorage.setItem('thenurab-redirect', path + location.search + location.hash);
+      location.replace('/thenurab/');
+    </script>
+    <title>THENURAB STORE</title>
+  </head>
+  <body></body>
+</html>

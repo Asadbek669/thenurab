@@ -1,4 +1,5 @@
 import { ShoppingBag } from 'lucide-react';
+import { appHref } from '../lib/routes';
 
 export default function Header({ cartCount, profile }) {
   return (
@@ -7,7 +8,7 @@ export default function Header({ cartCount, profile }) {
         Barcha buyurtmalarga yetkazib berish xizmati mavjud
       </div>
       <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
-        <a href="#" className="group flex items-center gap-2.5" aria-label="Thenurab Store bosh sahifa">
+        <a href={appHref()} className="group flex items-center gap-2.5" aria-label="Thenurab Store bosh sahifa">
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#24231f] text-sm font-black tracking-tight text-white transition group-hover:bg-[#8b6b48] sm:h-11 sm:w-11">T</span>
           <span>
             <span className="block text-base font-black leading-4 tracking-[0.12em] text-[#24231f] sm:text-lg">THENURAB</span>
@@ -16,21 +17,20 @@ export default function Header({ cartCount, profile }) {
         </a>
 
         <div className="hidden items-center gap-8 text-sm font-medium text-stone-600 md:flex">
-          <a href="#categories-heading" className="transition hover:text-[#8b6b48]">Kategoriyalar</a>
           <a href="#products" className="transition hover:text-[#8b6b48]">Mahsulotlar</a>
           <a href="#footer" className="transition hover:text-[#8b6b48]">Biz haqimizda</a>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <a
-            href="/profile"
+            href={appHref('/profile')}
             aria-label={profile?.name ? `Profil: ${profile.name}` : 'Profil sahifasi'}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e7dac8] text-sm font-bold uppercase text-[#5e4831] ring-2 ring-white transition hover:bg-[#d6c2a8] sm:h-11 sm:w-11"
           >
             {profile?.name?.trim()?.charAt(0) || 'T'}
           </a>
           <a
-            href="/cart"
+            href={appHref('/cart')}
             className="relative flex h-11 items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 text-sm font-semibold text-stone-700 shadow-sm transition hover:border-[#b7a087] hover:text-[#8b6b48] sm:px-4"
             aria-label={`Savatcha, ${cartCount} ta mahsulot`}
           >

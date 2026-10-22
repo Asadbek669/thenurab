@@ -3,6 +3,7 @@ import Header from './Header';
 import Footer from './Footer';
 import pb from '../lib/pocketbase';
 import { colorDetails } from '../lib/productColors';
+import { appHref } from '../lib/routes';
 
 const formatPrice = (price) => `${Number(price || 0).toLocaleString('uz-UZ')} so'm`;
 const productPrice = (product) => {
@@ -43,7 +44,7 @@ export default function CartPage({ cart, setCart, profile }) {
     <div className="flex min-h-screen flex-col bg-[#f8f7f4] text-[#24231f]">
       <Header cartCount={totalItems} profile={profile} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]">
+        <a href={appHref()} className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]">
           <ArrowLeft className="h-4 w-4" /> Xaridni davom ettirish
         </a>
         <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
@@ -59,7 +60,7 @@ export default function CartPage({ cart, setCart, profile }) {
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#f5f0e9] text-[#8b6b48]"><ShoppingBag className="h-7 w-7" /></span>
             <h2 className="mt-5 text-xl font-bold">Savatchangiz bo‘sh</h2>
             <p className="mt-2 text-sm text-stone-500">Yoqtirgan mahsulotlaringizni tanlab, shu yerda jamlang.</p>
-            <a href="/" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#24231f] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#8b6b48]">
+            <a href={appHref()} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#24231f] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#8b6b48]">
               Mahsulotlarni ko‘rish <ArrowRight className="h-4 w-4" />
             </a>
           </section>
@@ -73,12 +74,12 @@ export default function CartPage({ cart, setCart, profile }) {
                 const color = chosenColor ? colorDetails(chosenColor) : null;
                 return (
                   <article key={`${product.id}-${chosenSize}-${chosenColor}`} className="flex gap-3 border-b border-stone-100 p-4 last:border-b-0 sm:gap-5 sm:p-5">
-                    <a href={`/product/${product.id}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f1eee8] sm:h-32 sm:w-32">
+                    <a href={appHref(`/product/${product.id}`)} className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f1eee8] sm:h-32 sm:w-32">
                       {image ? <img src={pb.files.getURL(product, image)} alt={product.title} className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-stone-400">Rasm yo‘q</span>}
                     </a>
                     <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-center">
                       <div className="min-w-0">
-                        <a href={`/product/${product.id}`} className="line-clamp-2 text-sm font-bold text-stone-800 hover:text-[#8b6b48] sm:text-base">{product.title}</a>
+                        <a href={appHref(`/product/${product.id}`)} className="line-clamp-2 text-sm font-bold text-stone-800 hover:text-[#8b6b48] sm:text-base">{product.title}</a>
                         <p className="mt-1 text-sm font-semibold text-[#8b6b48]">{formatPrice(productPrice(product))}</p>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           {color && <span className="inline-flex items-center gap-1.5 text-xs text-stone-500">

@@ -9,6 +9,7 @@ import CartPage from './components/CartPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import pb from './lib/pocketbase';
 import { normalizeProductOptions } from './lib/productColors';
+import { appHref, getAppPath } from './lib/routes';
 
 const formatPrice = (price) => `${Number(price || 0).toLocaleString('uz-UZ')} so'm`;
 const productPrice = (product) => {
@@ -18,8 +19,9 @@ const productPrice = (product) => {
 };
 
 export default function App() {
-  if (window.location.pathname === '/admin') return <AdminPage />;
-  if (window.location.pathname === '/profile') return <ProfilePage />;
+  const path = getAppPath();
+  if (path === '/admin') return <AdminPage />;
+  if (path === '/profile') return <ProfilePage />;
   return <StorefrontRouter />;
 }
 
@@ -60,8 +62,9 @@ function StorefrontRouter() {
     };
   }, []);
 
-  const productRoute = window.location.pathname.match(/^\/product\/([^/]+)\/?$/);
-  if (window.location.pathname === '/cart') return <CartPage cart={cart} setCart={setCart} profile={profile} />;
+  const path = getAppPath();
+  const productRoute = path.match(/^\/product\/([^/]+)\/?$/);
+  if (path === '/cart') return <CartPage cart={cart} setCart={setCart} profile={profile} />;
   if (productRoute) return <ProductDetailPage productId={decodeURIComponent(productRoute[1])} cartCount={cart.length} setCart={setCart} profile={profile} />;
   return <Storefront cart={cart} setCart={setCart} profile={profile} />;
 }
@@ -189,7 +192,7 @@ function Storefront({ cart, setCart, profile }) {
                     const colors = normalizeProductOptions(item.color);
                     return (
                       <article key={item.id} className="group flex min-w-0 flex-col overflow-hidden rounded-3xl border border-stone-100 bg-white p-2.5 shadow-[0_8px_30px_rgba(39,35,28,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(39,35,28,0.1)] sm:p-4">
-                        <a href={`/product/${item.id}`} aria-label={`${item.title} tafsilotlari`} className="relative block aspect-[4/4.5] overflow-hidden rounded-2xl bg-[#f1eee8]">
+                        <a href={appHref(`/product/${item.id}`)} aria-label={`${item.title} tafsilotlari`} className="relative block aspect-[4/4.5] overflow-hidden rounded-2xl bg-[#f1eee8]">
                           {imageName ? (
                             <img
                               src={pb.files.getURL(item, imageName)}
@@ -208,7 +211,7 @@ function Storefront({ cart, setCart, profile }) {
                           </span>
                         </a>
                         <div className="flex flex-1 flex-col px-0.5 pb-0.5 pt-3 sm:px-1 sm:pt-4">
-                          <a href={`/product/${item.id}`} className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-stone-800 transition hover:text-[#8b6b48] sm:text-base">{item.title}</a>
+                          <a href={appHref(`/product/${item.id}`)} className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-stone-800 transition hover:text-[#8b6b48] sm:text-base">{item.title}</a>
                           <div className="mt-auto flex flex-col gap-3 pt-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                               {item.discount_price > 0 && item.discount_price < item.price && (
@@ -219,7 +222,7 @@ function Storefront({ cart, setCart, profile }) {
                               </p>
                             </div>
                             {sizes.length > 0 || colors.length > 0 ? (
-                              <a href={`/product/${item.id}`} aria-label={`${item.title} variantini tanlash`} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#24231f] px-3 text-xs font-semibold text-white transition hover:bg-[#8b6b48] sm:w-auto sm:text-sm">
+                              <a href={appHref(`/product/${item.id}`)} aria-label={`${item.title} variantini tanlash`} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#24231f] px-3 text-xs font-semibold text-white transition hover:bg-[#8b6b48] sm:w-auto sm:text-sm">
                                 <Plus className="h-4 w-4" />
                                 <span>Tanlash</span>
                               </a>
