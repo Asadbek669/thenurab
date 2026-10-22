@@ -17,6 +17,7 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [backendUnavailable, setBackendUnavailable] = useState(false);
   const [added, setAdded] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
@@ -35,7 +36,10 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
       })
       .catch((requestError) => {
         console.error('Mahsulot tafsilotlarini yuklashda xatolik:', requestError);
-        if (active) setError(requestError?.response?.message || 'Mahsulotni topib bo‘lmadi.');
+        if (active) {
+          setBackendUnavailable(requestError?.status === 0);
+          setError(requestError?.response?.message || 'Mahsulotni topib bo‘lmadi.');
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -54,8 +58,8 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
       <Header cartCount={cartCount} profile={profile} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <a href={appHref()} className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 transition hover:text-[#8b6b48]"><ArrowLeft className="h-4 w-4" /> Mahsulotlarga qaytish</a>
-        {loading ? <div className="mt-8 grid animate-pulse gap-8 lg:grid-cols-2"><div className="aspect-square rounded-3xl bg-stone-200" /><div className="h-96 rounded-3xl bg-stone-200" /></div>
-          : error ? <div role="alert" className="mt-8 rounded-3xl border border-red-100 bg-white p-10 text-center text-sm text-red-700">{error}</div>
+        {loading ? <ProductDetailSkeleton />
+          : error ? <>{backendUnavailable && <ProductDetailSkeleton />}<div role="alert" className="mt-8 rounded-3xl border border-red-100 bg-white p-5 text-center text-sm text-red-700">{error}</div></>
             : product && (
               <section className="mt-6 grid gap-7 lg:grid-cols-2 lg:gap-12">
                 <div>
@@ -123,6 +127,32 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
             )}
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <div aria-label="Mahsulot ma’lumotlari yuklanmoqda" aria-busy="true" className="mt-8 grid gap-7 lg:grid-cols-2 lg:gap-12">
+      <div>
+        <div className="skeleton-shimmer aspect-square rounded-3xl" />
+        <div className="mt-3 flex gap-3">
+          {[1, 2, 3].map((item) => <div key={item} className="skeleton-shimmer h-20 w-20 shrink-0 rounded-xl" />)}
+        </div>
+      </div>
+      <div className="rounded-3xl border border-stone-200 bg-white p-5 sm:p-8 lg:p-10">
+        <div className="skeleton-shimmer h-3 w-28 rounded" />
+        <div className="skeleton-shimmer mt-4 h-9 w-3/4 rounded-lg" />
+        <div className="skeleton-shimmer mt-6 h-7 w-36 rounded" />
+        <div className="mt-7 space-y-2">
+          <div className="skeleton-shimmer h-3 w-full rounded" />
+          <div className="skeleton-shimmer h-3 w-5/6 rounded" />
+          <div className="skeleton-shimmer h-3 w-2/3 rounded" />
+        </div>
+        <div className="skeleton-shimmer mt-8 h-24 w-full rounded-xl" />
+        <div className="skeleton-shimmer mt-4 h-20 w-full rounded-xl" />
+        <div className="skeleton-shimmer mt-7 h-12 w-full rounded-xl" />
+      </div>
     </div>
   );
 }

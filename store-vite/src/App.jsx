@@ -72,9 +72,12 @@ function StorefrontRouter() {
 function Storefront({ cart, setCart, profile }) {
   const [products, setProducts] = useState([]);
   const [banners, setBanners] = useState([]);
+  const [bannerLoading, setBannerLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [productsUnavailable, setProductsUnavailable] = useState(false);
+  const [bannerError, setBannerError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -87,6 +90,7 @@ function Storefront({ cart, setCart, profile }) {
       .catch((error) => {
         if (active) {
           console.error('Mahsulotlarni olishda xatolik:', error);
+          setProductsUnavailable(error?.status === 0);
           setLoadError("Mahsulotlarni yuklab bo'lmadi. Internet yoki server bilan aloqani tekshiring.");
         }
       })
@@ -108,6 +112,10 @@ function Storefront({ cart, setCart, profile }) {
       })
       .catch((error) => {
         console.error('Bannerlarni olishda xatolik:', error);
+        if (active) setBannerError(error?.response?.message || 'Bannerlarni yuklab bo‘lmadi.');
+      })
+      .finally(() => {
+        if (active) setBannerLoading(false);
       });
 
     return () => {
@@ -126,7 +134,8 @@ function Storefront({ cart, setCart, profile }) {
       <Header cartCount={cart.length} profile={profile} />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-5 sm:px-6 sm:pt-8 lg:px-8">
-        {banners.length > 0 && <Banner banners={banners} />}
+        {(bannerLoading || bannerError || banners.length > 0) && <Banner banners={banners} loading={bannerLoading || Boolean(bannerError)} />}
+        {bannerError && <p role="alert" className="mt-2 text-xs text-stone-500">{bannerError}</p>}
 
         <section id="products" className="mt-14 scroll-mt-24 sm:mt-16" aria-labelledby="products-heading">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -150,29 +159,25 @@ function Storefront({ cart, setCart, profile }) {
           <div>
             <div>
               {loading ? (
-                <div className="grid grid-cols-2 gap-3 sm:gap-5">
-                  {[1, 2, 3, 4].map((item) => (
-                    <div key={item} className="animate-pulse rounded-3xl bg-white p-3 shadow-sm sm:p-4">
-                      <div className="aspect-[4/4.5] rounded-2xl bg-stone-100" />
-                      <div className="mt-4 h-4 w-2/3 rounded bg-stone-100" />
-                      <div className="mt-3 h-4 w-1/3 rounded bg-stone-100" />
-                    </div>
-                  ))}
-                </div>
+                <ProductGridSkeleton />
               ) : loadError ? (
-                <div className="rounded-3xl border border-red-100 bg-white px-6 py-12 text-center">
-                  <p className="font-semibold text-stone-800">{loadError}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoading(true);
-                      setLoadError('');
-                      setReloadKey((key) => key + 1);
-                    }}
-                    className="mt-5 rounded-full bg-[#24231f] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-700"
-                  >
-                    Qayta urinish
-                  </button>
+                <div>
+                  <div role="alert" className="mb-5 rounded-2xl border border-red-100 bg-white px-5 py-4 text-center">
+                    <p className="font-semibold text-stone-800">{loadError}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoading(true);
+                        setLoadError('');
+                        setProductsUnavailable(false);
+                        setReloadKey((key) => key + 1);
+                      }}
+                      className="mt-4 rounded-full bg-[#24231f] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-700"
+                    >
+                      Qayta urinish
+                    </button>
+                  </div>
+                  {productsUnavailable && <ProductGridSkeleton />}
                 </div>
               ) : visibleProducts.length === 0 ? (
                 <div className="rounded-3xl border border-stone-200 bg-white px-6 py-14 text-center">
@@ -253,6 +258,23 @@ function Storefront({ cart, setCart, profile }) {
       </main>
 
       <Footer />
+    </div>
+  );
+}
+
+function ProductGridSkeleton() {
+  return (
+    <div aria-label="Mahsulotlar yuklanmoqda" aria-busy="true" className="grid grid-cols-2 gap-3 sm:gap-5">
+      {[1, 2, 3, 4].map((item) => (
+        <div key={item} className="rounded-3xl border border-stone-100 bg-white p-3 shadow-sm sm:p-4" aria-hidden="true">
+          <div className="skeleton-shimmer aspect-[4/4.5] rounded-2xl" />
+          <div className="skeleton-shimmer mt-4 h-4 w-2/3 rounded" />
+          <div className="mt-4 flex items-center justify-between">
+            <div className="skeleton-shimmer h-4 w-1/3 rounded" />
+            <div className="skeleton-shimmer h-10 w-20 rounded-xl" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
