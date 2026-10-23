@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import pb from '../lib/pocketbase';
-import { appHref } from '../lib/routes';
+import api from '../lib/api';
+import { resolveAppLink } from '../lib/routes';
 
 export default function Banner({ banners, loading = false }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -32,7 +32,7 @@ export default function Banner({ banners, loading = false }) {
   return (
     <section aria-busy={Boolean(imageName && loadedImageName !== imageName)} className="relative isolate aspect-[16/9] min-h-44 w-full overflow-hidden rounded-[24px] bg-[#292820] shadow-[0_24px_70px_rgba(39,35,28,0.16)] sm:aspect-[16/7] sm:min-h-[280px] sm:rounded-[36px] lg:aspect-[16/6] lg:min-h-[400px]">
       <a
-        href={banner.url ? (banner.url.startsWith('/') ? appHref(banner.url) : banner.url) : '#products'}
+        href={resolveAppLink(banner.url)}
         aria-label={banner.title ? `Banner: ${banner.title}` : 'Banner orqali mahsulotlarni ko‘rish'}
         className="absolute inset-0 z-0 block overflow-hidden"
       >
@@ -41,7 +41,7 @@ export default function Banner({ banners, loading = false }) {
             {loadedImageName !== imageName && <div className="skeleton-shimmer absolute inset-0" />}
             <img
               key={imageName}
-              src={pb.files.getURL(banner, imageName)}
+              src={api.files.getURL(banner, imageName)}
               alt={banner.title || 'THENURAB banner'}
               onLoad={() => setLoadedImageName(imageName)}
               className={`h-full w-full object-cover transition duration-700 hover:scale-[1.02] ${loadedImageName === imageName ? 'opacity-100' : 'opacity-0'}`}

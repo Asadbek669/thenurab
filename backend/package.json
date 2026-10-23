@@ -1,0 +1,21 @@
+{
+  "name": "thenurab-api",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "import:pocketbase": "node scripts/import-pocketbase.mjs",
+    "create-admin": "node scripts/create-admin.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "sharp": "^0.35.5"
+  }
+}

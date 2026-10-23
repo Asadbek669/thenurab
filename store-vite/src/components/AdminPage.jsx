@@ -3,10 +3,10 @@ import {
   Boxes, Image, LayoutDashboard, Package, Pencil, Plus, RefreshCw,
   Search, ShoppingCart, Trash2, Users, X,
 } from 'lucide-react';
-import pb from '../lib/pocketbase';
+import api from '../lib/api';
 import prepareImage from '../lib/prepareImage';
 import { colorDetails, normalizeProductOptions, productColors } from '../lib/productColors';
-import { appHref } from '../lib/routes';
+import { appHref, resolveAppLink } from '../lib/routes';
 
 const sections = [
   { id: 'overview', label: 'Umumiy', icon: LayoutDashboard },
@@ -26,28 +26,27 @@ const blankBanner = { title: '', url: '', is_active: true };
 const productSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
 export default function AdminPage() {
-  const [authorized, setAuthorized] = useState(pb.authStore.isSuperuser);
+  const [authorized, setAuthorized] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [section, setSection] = useState('overview');
   const [data, setData] = useState({ products: [], banners: [], orders: [], users: [] });
-  const [loading, setLoading] = useState(pb.authStore.isSuperuser);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [query, setQuery] = useState('');
   const [editor, setEditor] = useState(null);
 
   const fetchData = () => Promise.all([
-    pb.collection('products').getFullList({ sort: '-created' }),
-    pb.collection('banner').getFullList({ sort: '-created' }),
-    pb.collection('orders').getFullList({ sort: '-created' }),
-    pb.collection('user').getFullList({ sort: '-created' }),
+    api.collection('products').getFullList({ sort: '-created' }),
+    api.collection('banner').getFullList({ sort: '-created' }),
+    api.collection('orders').getFullList({ sort: '-created' }),
+    api.collection('user').getFullList({ sort: '-created' }),
   ]);
 
   const handleRequestError = (requestError, fallbackMessage) => {
     console.error(fallbackMessage, requestError);
     if (requestError?.status === 401 || requestError?.status === 403) {
-      pb.authStore.clear();
       setAuthorized(false);
     }
     setError(requestError?.response?.message || fallbackMessage);
@@ -62,14 +61,35 @@ export default function AdminPage() {
       const [products, banners, orders, users] = await fetchData();
       setData({ products, banners, orders, users });
     } catch (requestError) {
-      handleRequestError(requestError, "Ma'lumotlarni yuklab bo'lmadi. PocketBase kolleksiya nomlari va ruxsatlarini tekshiring.");
+      handleRequestError(requestError, "Ma'lumotlarni yuklab bo'lmadi. API server va ruxsatlarni tekshiring.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!authorized || !pb.authStore.isSuperuser) return undefined;
+    let active = true;
+    api.admin.getSession()
+      .then(() => {
+        if (active) setAuthorized(true);
+      })
+      .catch((requestError) => {
+        if (requestError?.status !== 401) {
+          console.error('Admin sessiyasini tekshirishda xatolik:', requestError);
+          if (active) setError(requestError?.response?.message || 'Admin sessiyasini tekshirib bo‘lmadi.');
+        }
+        if (active) setAuthorized(false);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!authorized) return undefined;
 
     let active = true;
     fetchData()
@@ -77,7 +97,7 @@ export default function AdminPage() {
         if (active) setData({ products, banners, orders, users });
       })
       .catch((requestError) => {
-        if (active) handleRequestError(requestError, "Ma'lumotlarni yuklab bo'lmadi. PocketBase kolleksiya nomlari va ruxsatlarini tekshiring.");
+        if (active) handleRequestError(requestError, "Ma'lumotlarni yuklab bo'lmadi. API server va ruxsatlarni tekshiring.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -93,9 +113,8 @@ export default function AdminPage() {
     setError('');
     setLoading(true);
     try {
-      await pb.collection('_superusers').authWithPassword(email, password);
-      setLoading(true);
-      setAuthorized(pb.authStore.isSuperuser);
+      await api.admin.login(email, password);
+      setAuthorized(true);
     } catch (loginError) {
       console.error('Admin tizimiga kirishda xatolik:', loginError);
       setError(loginError?.response?.message || "Email yoki parol noto'g'ri.");
@@ -108,8 +127,8 @@ export default function AdminPage() {
     setError('');
     setNotice('');
     try {
-      if (id) await pb.collection(collection).update(id, values);
-      else await pb.collection(collection).create(values);
+      if (id) await api.collection(collection).update(id, values);
+      else await api.collection(collection).create(values);
       setEditor(null);
       setNotice(id ? 'O‘zgarishlar saqlandi.' : 'Yangi maʼlumot qo‘shildi.');
       await loadData(false);
@@ -125,7 +144,7 @@ export default function AdminPage() {
     setError('');
     setNotice('');
     try {
-      await pb.collection(collection).delete(id);
+      await api.collection(collection).delete(id);
       setNotice("Yozuv o'chirildi.");
       await loadData(false);
     } catch (deleteError) {
@@ -143,6 +162,10 @@ export default function AdminPage() {
     return list.filter((record) => JSON.stringify(record).toLocaleLowerCase().includes(normalized));
   }, [data, query, section]);
 
+  if (authorized === null) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#f4f2ed] px-4 text-sm text-stone-500">Admin sessiyasi tekshirilmoqda...</main>;
+  }
+
   if (!authorized) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f4f2ed] px-4 py-10">
@@ -152,7 +175,7 @@ export default function AdminPage() {
             <span className="text-sm font-black tracking-[0.14em]">THENURAB <span className="text-[#9a8062]">ADMIN</span></span>
           </a>
           <h1 className="mt-8 text-2xl font-bold">Admin panelga kirish</h1>
-          <p className="mt-2 text-sm leading-6 text-stone-500">PocketBase superuser email va parolingizni kiriting.</p>
+          <p className="mt-2 text-sm leading-6 text-stone-500">Admin email va parolingizni kiriting.</p>
           <label className="mt-7 block text-sm font-semibold text-stone-700">
             Email
             <input
@@ -258,7 +281,7 @@ export default function AdminPage() {
                   {searchableData.map((product) => {
                     const image = Array.isArray(product.images) ? product.images[0] : product.images;
                     return <div key={product.id} className="flex items-center gap-3 p-4 sm:gap-4 sm:px-5">
-                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-stone-100">{image && <img src={pb.files.getURL(product, image, { thumb: '100x100' })} alt="" className="h-full w-full object-cover" />}</div>
+                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-stone-100">{image && <img src={api.files.getURL(product, image)} alt="" className="h-full w-full object-cover" />}</div>
                       <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{product.title || 'Nomsiz mahsulot'}</p><p className="mt-1 text-xs text-stone-500">{money(product.discount_price || product.price)}{product.category ? ` · ${product.category}` : ''} · {product.in_stock === false ? 'Tugagan' : 'Mavjud'}</p></div>
                       <RecordActions onEdit={() => setEditor({ kind: 'product', record: product })} onDelete={() => deleteRecord('products', product.id)} />
                     </div>;
@@ -268,7 +291,7 @@ export default function AdminPage() {
               ) : section === 'banners' ? (
                 <div className="divide-y divide-stone-100">
                   {searchableData.map((banner) => <div key={banner.id} className="flex items-center gap-3 p-4 sm:gap-4 sm:px-5">
-                    <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">{banner.image && <img src={pb.files.getURL(banner, banner.image, { thumb: '200x100' })} alt="" className="h-full w-full object-cover" />}</div>
+                    <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">{banner.image && <img src={api.files.getURL(banner, banner.image)} alt="" className="h-full w-full object-cover" />}</div>
                     <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{banner.title || 'Nomsiz banner'}</p><p className="mt-1 text-xs text-stone-500">{banner.is_active ? 'Faol' : 'Faol emas'}{banner.url ? ` · ${banner.url}` : ''}</p></div>
                     <RecordActions onEdit={() => setEditor({ kind: 'banner', record: banner })} onDelete={() => deleteRecord('banner', banner.id)} />
                   </div>)}
@@ -287,12 +310,19 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-left text-sm">
-                    <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500"><tr><th className="px-5 py-3">Buyurtma</th><th className="px-5 py-3">Foydalanuvchi</th><th className="px-5 py-3">Telefon / manzil</th><th className="px-5 py-3">Mahsulotlar</th><th className="px-5 py-3">Jami</th><th className="px-5 py-3">Holat</th></tr></thead>
+                  <table className="w-full min-w-[980px] text-left text-sm">
+                    <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500"><tr><th className="px-5 py-3">Buyurtma</th><th className="px-5 py-3">Foydalanuvchi</th><th className="px-5 py-3">Telefon / manzil</th><th className="px-5 py-3">Mahsulotlar</th><th className="px-5 py-3">Jami</th><th className="px-5 py-3">Holat</th><th className="px-5 py-3">Telegram</th></tr></thead>
                     <tbody className="divide-y divide-stone-100">{searchableData.map((order) => {
                       const customer = data.users.find((user) => user.id === order.user || user.telegram_id === order.user);
                       const itemNames = Array.isArray(order.items)
-                        ? order.items.map((item) => typeof item === 'string' ? item : item?.title || item?.name || item?.product || JSON.stringify(item)).join(', ')
+                        ? order.items.map((item) => {
+                          if (typeof item === 'string') return item;
+                          const title = item?.title || item?.name || item?.product || 'Mahsulot';
+                          const quantity = item?.quantity ? ` × ${item.quantity}` : '';
+                          const options = [item?.size && `o‘lcham: ${item.size}`, item?.color && `rang: ${item.color}`].filter(Boolean);
+                          const price = item?.line_total ?? item?.unit_price;
+                          return `${title}${quantity}${options.length ? ` (${options.join(', ')})` : ''}${price != null ? ` — ${money(price)}` : ''}`;
+                        }).join('; ')
                         : order.items || '—';
                       return <tr key={order.id}>
                         <td className="px-5 py-4"><p className="font-semibold">#{order.id.slice(-6)}</p><p className="mt-1 text-xs text-stone-500">{date(order.created)}</p></td>
@@ -301,6 +331,7 @@ export default function AdminPage() {
                         <td className="max-w-[220px] px-5 py-4 text-xs text-stone-600">{itemNames}</td>
                         <td className="whitespace-nowrap px-5 py-4 font-semibold">{money(order.total_price)}</td>
                         <td className="px-5 py-4"><span className="rounded-full bg-[#f5f0e9] px-2.5 py-1 text-xs font-semibold text-[#795b3a]">{order.status || '—'}</span></td>
+                        <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${order.notification_status === 'sent' ? 'bg-emerald-50 text-emerald-700' : order.notification_status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{order.notification_status === 'sent' ? 'Yuborildi' : order.notification_status === 'failed' ? 'Xatolik' : 'Kutilmoqda'}</span></td>
                       </tr>;
                     })}</tbody>
                   </table>
@@ -355,7 +386,7 @@ function EditorModal({ kind, record, products, onClose, onSave }) {
   const imageField = product ? 'images' : 'image';
   const previousImage = Array.isArray(record?.[imageField]) ? record[imageField][0] : record?.[imageField];
   const dimensions = product ? { width: 800, height: 800 } : { width: 1280, height: 720 };
-  const linkedProductId = products.find((item) => values.url === `/product/${item.id}`)?.id || '';
+  const linkedProductId = products.find((item) => resolveAppLink(values.url) === appHref(`/product/${item.id}`))?.id || '';
 
   useEffect(() => () => {
     previewUrls.current.forEach((imageUrl) => URL.revokeObjectURL(imageUrl));
@@ -584,7 +615,7 @@ function EditorModal({ kind, record, products, onClose, onSave }) {
                 {existingImages.map((filename, index) => (
                   <div key={filename} className={`relative ${product ? '' : 'col-span-3 sm:col-span-5'}`}>
                     <img
-                      src={pb.files.getURL(record, filename)}
+                      src={api.files.getURL(record, filename)}
                       alt={`Mavjud rasm ${index + 1}`}
                       className={`w-full rounded-xl bg-stone-100 object-cover ${product ? 'aspect-square' : 'aspect-video'}`}
                     />
@@ -618,7 +649,7 @@ function EditorModal({ kind, record, products, onClose, onSave }) {
               </div>
             ) : previousImage && (
               <div className="mt-3">
-                <img src={pb.files.getURL(record, previousImage)} alt="Hozirgi rasm" className="col-span-3 aspect-video w-full rounded-xl bg-stone-100 object-cover sm:col-span-5" />
+                <img src={api.files.getURL(record, previousImage)} alt="Hozirgi rasm" className="col-span-3 aspect-video w-full rounded-xl bg-stone-100 object-cover sm:col-span-5" />
               </div>
             )}
             {(images.length > 0 || existingImages.length > 0) && <span className="mt-2 block text-xs font-medium text-emerald-700">{product ? `${existingImages.length + images.length}/10 ta rasm.` : 'Rasm tanlandi.'} WEBP formatida saqlanadi.</span>}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, Plus, ShoppingBag } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
-import pb from '../lib/pocketbase';
+import api from '../lib/api';
 import { colorDetails, normalizeProductOptions } from '../lib/productColors';
 import { appHref } from '../lib/routes';
 
@@ -25,7 +25,7 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
 
   useEffect(() => {
     let active = true;
-    pb.collection('products').getOne(productId)
+    api.collection('products').getOne(productId)
       .then((record) => {
         if (active) {
           setProduct(record);
@@ -64,9 +64,9 @@ export default function ProductDetailPage({ productId, cartCount, setCart, profi
               <section className="mt-6 grid gap-7 lg:grid-cols-2 lg:gap-12">
                 <div>
                   <div className="aspect-square overflow-hidden rounded-3xl bg-[#f1eee8]">
-                    {images[imageIndex] ? <img src={pb.files.getURL(product, images[imageIndex])} alt={product.title} className="h-full w-full object-cover" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-stone-400"><ShoppingBag className="h-10 w-10" /><span className="text-sm">Rasm mavjud emas</span></div>}
+                    {images[imageIndex] ? <img src={api.files.getURL(product, images[imageIndex])} alt={product.title} className="h-full w-full object-cover" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-stone-400"><ShoppingBag className="h-10 w-10" /><span className="text-sm">Rasm mavjud emas</span></div>}
                   </div>
-                  {images.length > 1 && <div className="mt-3 flex gap-3 overflow-x-auto">{images.map((image, index) => <button key={image} type="button" onClick={() => setImageIndex(index)} aria-label={`Mahsulot rasmi ${index + 1}`} aria-pressed={imageIndex === index} className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 ${imageIndex === index ? 'border-[#8b6b48]' : 'border-transparent'}`}><img src={pb.files.getURL(product, image, { thumb: '100x100' })} alt={`${product.title} rasmi ${index + 1}`} className="h-full w-full object-cover" /></button>)}</div>}
+                  {images.length > 1 && <div className="mt-3 flex gap-3 overflow-x-auto">{images.map((image, index) => <button key={image} type="button" onClick={() => setImageIndex(index)} aria-label={`Mahsulot rasmi ${index + 1}`} aria-pressed={imageIndex === index} className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 ${imageIndex === index ? 'border-[#8b6b48]' : 'border-transparent'}`}><img src={api.files.getURL(product, image)} alt={`${product.title} rasmi ${index + 1}`} className="h-full w-full object-cover" /></button>)}</div>}
                 </div>
                 <div className="rounded-3xl border border-stone-200 bg-white p-5 sm:p-8 lg:p-10">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#9a8062]">{product.category || 'THENURAB kolleksiyasi'}</p>

@@ -7,7 +7,7 @@ import AdminPage from './components/AdminPage';
 import ProfilePage from './components/ProfilePage';
 import CartPage from './components/CartPage';
 import ProductDetailPage from './components/ProductDetailPage';
-import pb from './lib/pocketbase';
+import api from './lib/api';
 import { normalizeProductOptions } from './lib/productColors';
 import { appHref, getAppPath } from './lib/routes';
 
@@ -46,7 +46,7 @@ function StorefrontRouter() {
     if (!initData) return undefined;
 
     let active = true;
-    pb.send('/api/telegram/profile', {
+    api.send('/api/telegram/profile', {
       method: 'POST',
       body: { initData },
     })
@@ -83,7 +83,7 @@ function Storefront({ cart, setCart, profile }) {
   useEffect(() => {
     let active = true;
 
-    pb.collection('products').getFullList()
+    api.collection('products').getFullList()
       .then((data) => {
         if (active) setProducts(data);
       })
@@ -105,7 +105,7 @@ function Storefront({ cart, setCart, profile }) {
 
   useEffect(() => {
     let active = true;
-    pb.collection('banner')
+    api.collection('banner')
       .getFullList({ filter: 'is_active = true', sort: '-created' })
       .then((banners) => {
         if (active) setBanners(banners);
@@ -200,7 +200,7 @@ function Storefront({ cart, setCart, profile }) {
                         <a href={appHref(`/product/${item.id}`)} aria-label={`${item.title} tafsilotlari`} className="relative block aspect-[4/4.5] overflow-hidden rounded-2xl bg-[#f1eee8]">
                           {imageName ? (
                             <img
-                              src={pb.files.getURL(item, imageName)}
+                              src={api.files.getURL(item, imageName)}
                               alt={item.title || 'Mahsulot rasmi'}
                               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                               loading="lazy"

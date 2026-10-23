@@ -1,7 +1,8 @@
-import { ArrowLeft, ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import pb from '../lib/pocketbase';
+import api from '../lib/api';
 import { colorDetails } from '../lib/productColors';
 import { appHref } from '../lib/routes';
 
@@ -17,6 +18,13 @@ const cartColor = (product) => product.selectedColor
   || (Array.isArray(product.color) ? '' : product.color || '');
 
 export default function CartPage({ cart, setCart, profile }) {
+  const [phone, setPhone] = useState(null);
+  const [address, setAddress] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [orderNotice, setOrderNotice] = useState('');
+  const phoneValue = phone ?? profile?.phone ?? '';
+  const addressValue = address ?? profile?.address ?? '';
   const grouped = cart.reduce((groups, product) => {
     const existing = groups.find((item) => item.product.id === product.id
       && cartSize(item.product) === cartSize(product)
@@ -39,6 +47,43 @@ export default function CartPage({ cart, setCart, profile }) {
       return index < 0 ? current : current.filter((_, itemIndex) => itemIndex !== index);
     });
   };
+  const placeOrder = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setOrderError('');
+    setOrderNotice('');
+    const initData = window.Telegram?.WebApp?.initData || '';
+    if (!initData) {
+      setOrderError('Buyurtma uchun Telegram bot ichidan do‘konni oching.');
+      setSubmitting(false);
+      return;
+    }
+    try {
+      const result = await api.send('/api/orders', {
+        method: 'POST',
+        body: {
+          initData,
+          phone: phoneValue.trim(),
+          address: addressValue.trim(),
+          items: grouped.map(({ product, quantity }) => ({
+            productId: product.id,
+            quantity,
+            size: product.selectedSize || '',
+            color: product.selectedColor || '',
+          })),
+        },
+      });
+      setCart([]);
+      setOrderNotice(result.warning
+        ? `Buyurtma #${result.order.id.slice(-6)} saqlandi. ${result.warning}`
+        : `Buyurtmangiz #${result.order.id.slice(-6)} qabul qilindi. Tez orada siz bilan bog‘lanamiz.`);
+    } catch (requestError) {
+      console.error('Buyurtmani yuborishda xatolik:', requestError);
+      setOrderError(requestError?.response?.message || 'Buyurtmani yuborib bo‘lmadi. Qayta urinib ko‘ring.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f7f4] text-[#24231f]">
@@ -54,6 +99,7 @@ export default function CartPage({ cart, setCart, profile }) {
           </div>
           <p className="text-sm text-stone-500">{totalItems} ta mahsulot</p>
         </div>
+        {orderNotice && <p role="status" className="mt-5 flex gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-800"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0" />{orderNotice}</p>}
 
         {grouped.length === 0 ? (
           <section className="mt-8 rounded-3xl border border-stone-200 bg-white px-5 py-16 text-center shadow-sm">
@@ -75,7 +121,7 @@ export default function CartPage({ cart, setCart, profile }) {
                 return (
                   <article key={`${product.id}-${chosenSize}-${chosenColor}`} className="flex gap-3 border-b border-stone-100 p-4 last:border-b-0 sm:gap-5 sm:p-5">
                     <a href={appHref(`/product/${product.id}`)} className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f1eee8] sm:h-32 sm:w-32">
-                      {image ? <img src={pb.files.getURL(product, image)} alt={product.title} className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-stone-400">Rasm yo‘q</span>}
+                      {image ? <img src={api.files.getURL(product, image)} alt={product.title} className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-xs text-stone-400">Rasm yo‘q</span>}
                     </a>
                     <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-center">
                       <div className="min-w-0">
@@ -107,10 +153,22 @@ export default function CartPage({ cart, setCart, profile }) {
               <h2 className="text-lg font-bold">Buyurtma xulosasi</h2>
               <div className="mt-5 flex justify-between text-sm text-stone-500"><span>Mahsulotlar ({totalItems} ta)</span><span>{formatPrice(totalPrice)}</span></div>
               <div className="mt-3 flex justify-between border-t border-stone-100 pt-4 text-base font-bold"><span>Jami</span><span className="text-[#8b6b48]">{formatPrice(totalPrice)}</span></div>
-              <button type="button" onClick={() => window.alert('Buyurtma berish oynasi hali sozlanmagan.')} className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#24231f] text-sm font-bold text-white transition hover:bg-[#8b6b48]">
-                Buyurtmani davom ettirish <ArrowRight className="h-4 w-4" />
-              </button>
-              <p className="mt-3 text-center text-xs leading-5 text-stone-400">Buyurtmani rasmiylashtirish tez orada yoqiladi.</p>
+              <form onSubmit={placeOrder} className="mt-5 space-y-3">
+                <label className="block text-xs font-semibold text-stone-600">
+                  Telefon raqami
+                  <input required type="tel" value={phoneValue} onChange={(event) => setPhone(event.target.value)} placeholder="+998 90 123 45 67" className="mt-1.5 h-11 w-full rounded-xl border border-stone-200 px-3 text-sm outline-none focus:border-[#9a8062]" />
+                </label>
+                <label className="block text-xs font-semibold text-stone-600">
+                  Yetkazib berish manzili
+                  <textarea required minLength={5} maxLength={500} rows="3" value={addressValue} onChange={(event) => setAddress(event.target.value)} placeholder="Shahar, ko‘cha, uy va xonadon" className="mt-1.5 w-full resize-y rounded-xl border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-[#9a8062]" />
+                </label>
+                {orderError && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-700">{orderError}</p>}
+                {orderNotice && <p role="status" className="flex gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs leading-5 text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />{orderNotice}</p>}
+                <button type="submit" disabled={submitting} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#24231f] text-sm font-bold text-white transition hover:bg-[#8b6b48] disabled:cursor-wait disabled:opacity-60">
+                  {submitting ? 'Yuborilmoqda...' : 'Buyurtma berish'} <ArrowRight className="h-4 w-4" />
+                </button>
+                <p className="text-center text-xs leading-5 text-stone-400">Buyurtma maʼlumotlari admin panelga saqlanib, Telegram guruhiga yuboriladi.</p>
+              </form>
             </aside>
           </div>
         )}

@@ -9,6 +9,8 @@ dist/
 **/.env.*
 !**/.env.example
 backend/pb_data/
+backend/data/
+backend/uploads/
 backend/pocketbase.exe
 *.exe
 *.zip

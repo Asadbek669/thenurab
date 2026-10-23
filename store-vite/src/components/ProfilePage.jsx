@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Send, ShieldCheck, UserRound } from 'lucide-react';
-import pb from '../lib/pocketbase';
+import api from '../lib/api';
 import { appHref } from '../lib/routes';
 
 export default function ProfilePage() {
@@ -19,7 +19,7 @@ export default function ProfilePage() {
 
     let active = true;
     webApp.ready();
-    pb.send('/api/telegram/profile', {
+    api.send('/api/telegram/profile', {
       method: 'POST',
       body: { initData },
     })
@@ -48,7 +48,7 @@ export default function ProfilePage() {
     setError('');
     setSaved(false);
     try {
-      const result = await pb.send('/api/telegram/profile', {
+      const result = await api.send('/api/telegram/profile', {
         method: 'POST',
         body: { initData, address: address.trim(), phone: phone.trim() },
       });
