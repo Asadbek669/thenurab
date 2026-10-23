@@ -25,10 +25,11 @@ local WEBP image files. PocketBase is no longer required to run the storefront.
    `VITE_API_URL=http://127.0.0.1:3000`, and start Vite with `npm run dev`.
 
 The API listens on loopback by default for local development. On the VPS,
-`apithe.fastora.uz` is routed through the external HTTPS ingress to port 3010;
-the API binds to that port and the ingress handles TLS. Keep direct public
-access to port 3010 blocked. Set `NODE_ENV=production` and `CORS_ORIGINS` to
-the exact storefront origin(s). The production storefront defaults to
+`apithe.fastora.uz` is routed by the external HTTPS ingress to
+`192.168.122.28:3010`; set `HOST=0.0.0.0` and `PORT=3010` so the API accepts
+that internal connection. The ingress handles TLS. Keep direct public access
+to port 3010 blocked. Set `NODE_ENV=production` and `CORS_ORIGINS` to the exact
+storefront origin(s). The production storefront defaults to
 `https://apithe.fastora.uz`; override it at build time with `VITE_API_URL` when
 deploying to a different API host.
 
